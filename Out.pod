@@ -1,0 +1,75 @@
+=head1 NAME
+
+Time::Out - Easily timeout long running operations
+
+
+=head1 SYNOPSIS
+
+  use Time::Out ;
+
+  timeout 5 => affects {
+    # your code goes were
+  } ;
+  if ($@){
+    # operation timed-out
+  }
+
+
+=head1 DESCRIPTION
+
+Time::Out provides an easy interface to I<alarm(2)> based timeouts.
+
+=head2 EXPORT
+
+Time::Out exports 2 symbols, 'timeout' and 'affects'. However, these 
+should only be used according to the syntax shown above.
+
+=head2 RETURN VALUE
+
+'timeout' returns whatever the code placed inside the block returns:
+
+  use Time::Out ;
+
+  my $rc = timeout 5 => affects {
+	return 5 ;
+  } ;
+  # $rc == 5
+
+
+=head1 BUGS
+
+One drawback to using 'timeout' is that it masks @_ in the affected code. 
+This happens because the affected code is actually wrapped inside another 
+subroutine that provides it's own @_. You can get around this by 
+specifically passing your @_ (or whatever you want for that matter) to 
+'timeout' as such:
+
+  use Time::Out ;
+
+  sub test {
+    timeout 5, @_ => affects {
+      print "$_[0]\n" ;
+    } ;
+  }
+
+  test("hello") ; # will print "hello\n" ;
+
+
+=head1 SEE ALSO
+
+I<eval>, I<alarm(2)>
+
+
+=head1 AUTHOR
+
+Patrick LeBoutillier, E<lt>patl@cpan.orgE<gt>
+
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2005 by Patrick LeBoutillier
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself. 
+
+=cut
