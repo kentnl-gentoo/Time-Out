@@ -12,7 +12,7 @@ BEGIN {
 }
 
 
-$Time::Out::VERSION = '0.02' ;
+$Time::Out::VERSION = '0.03' ;
 
 
 sub timeout($@){

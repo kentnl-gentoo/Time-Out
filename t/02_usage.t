@@ -4,12 +4,13 @@ use Time::Out ;
 
 
 BEGIN {
-	plan(tests => 7) ;
+	plan(tests => 8) ;
 }
 
+print STDERR "\nThese tests use sleep() so please be patient...\n" ;
 
 # catch timeout
-timeout 1 => affects {
+timeout 2 => affects {
 	sleep(3) ;
 } ;
 ok($@ eq 'timeout') ;
@@ -25,7 +26,7 @@ ok($rc, 56) ;
 
 
 sub test_no_args {
-	timeout 1 => affects {
+	timeout 2 => affects {
 		return @_[0] ;
 	} ;
 }
@@ -33,7 +34,7 @@ ok(test_no_args(5), undef) ;
 
 
 sub test_args {
-	timeout 1,@_ => affects {
+	timeout 2,@_ => affects {
 		@_[0] ;
 	} ;
 }
@@ -41,7 +42,7 @@ ok(test_args(5), 5) ;
 
 
 # repeats 
-timeout 1 => affects {
+timeout 2 => affects {
 	sleep(3) ;
 } ;
 sleep(3) ;
@@ -49,8 +50,22 @@ ok(1) ;
 
 
 # 0 
-$SIG{__WARN__} = sub {ok(1)} ;
-timeout 0 => affects {
+{
+	my $ok = 0 ;
+	local $SIG{__WARN__} = sub {$ok = 1} ;
+	timeout 0 => affects {
+	} ;
+	ok($ok) ;
+}
+
+
+# blocking I/O
+pipe(R, W) ;
+my $nb = 2 ;
+my $line = undef ;
+timeout $nb => affects {
+	$line = <R> ;
 } ;
+ok($@ eq 'timeout') ;
 
 
