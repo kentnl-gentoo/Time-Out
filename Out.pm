@@ -7,7 +7,7 @@ use Exporter ;
 use Carp ;
 
 
-$Time::Out::VERSION = '0.04' ;
+$Time::Out::VERSION = '0.05' ;
 
 
 sub timeout($@){

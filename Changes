@@ -4,3 +4,11 @@ Revision history for Perl extension Time::Out.
 	- original version; created by h2xs 1.22 with options
 		-AX Time::Out
 
+0.04  Thu Jan  6 13:33:31 EST 2005
+    - Added tests for blocking I/O
+	- Added support for Time::HiRes
+
+0.05  Fri Jan  7 13:33:31 EST 2005
+    - Updated documentation
+	
+

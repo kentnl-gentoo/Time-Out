@@ -20,10 +20,23 @@ Time::Out - Easily timeout long running operations
 
 C<Time::Out> provides an easy interface to I<alarm(2)> based timeouts.
 
+
 =head2 EXPORT
 
 C<Time::Out> exports 2 symbols, 'timeout' and 'affects'. However, these 
 should only be used according to the syntax shown above.
+
+Note: If fact, the 'affects' is really just a no-op to hide the fact that 
+the code is being placed inside another sub (I felt this fact might confuse
+folks who are Perl newbies). You could (and probably should) just as well 
+say:
+
+  use Time::Out ;
+
+  timeout $nb_secs => sub {
+	# ...
+  } ;
+
 
 =head2 RETURN VALUE
 
@@ -53,6 +66,15 @@ float timeout values to be usedi effectively:
 
 =head1 BUGS
 
+=over 4 
+
+=item Blocking I/O on MSWin32
+
+I<alarm(2)> doesn't interrupt blocking I/O on MSWin32, so 'timeout' won't
+do that either.
+
+=item @_
+
 One drawback to using 'timeout' is that it masks @_ in the affected code. 
 This happens because the affected code is actually wrapped inside another 
 subroutine that provides it's own @_. You can get around this by 
@@ -68,6 +90,8 @@ specifically passing your @_ (or whatever you want for that matter) to
   }
 
   test("hello") ; # will print "hello\n" ;
+
+=back
 
 
 =head1 SEE ALSO
