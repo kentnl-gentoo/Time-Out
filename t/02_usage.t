@@ -1,13 +1,14 @@
 use strict ;
+use warnings ;
 use Test ;
 use Time::Out ;
 
 
 BEGIN {
-	plan(tests => 8) ;
+	plan(tests => 9) ;
 }
 
-print STDERR "\nThese tests use sleep() so please be patient...\n" ;
+print STDERR "\nThe following tests use sleep() so please be patient...\n" ;
 
 # catch timeout
 timeout 2 => affects {
@@ -27,7 +28,7 @@ ok($rc, 56) ;
 
 sub test_no_args {
 	timeout 2 => affects {
-		return @_[0] ;
+		return $_[0] ;
 	} ;
 }
 ok(test_no_args(5), undef) ;
@@ -35,7 +36,7 @@ ok(test_no_args(5), undef) ;
 
 sub test_args {
 	timeout 2,@_ => affects {
-		@_[0] ;
+		$_[0] ;
 	} ;
 }
 ok(test_args(5), 5) ;
@@ -58,14 +59,32 @@ ok(1) ;
 	ok($ok) ;
 }
 
+# CPU
+timeout 1 => affects {
+	while (1) {} ;
+} ;
+ok(1) ;
+
 
 # blocking I/O
-pipe(R, W) ;
-my $nb = 2 ;
-my $line = undef ;
-timeout $nb => affects {
-	$line = <R> ;
-} ;
-ok($@ eq 'timeout') ;
+if ($^O eq 'MSWin32'){
+	skip("alarm() doesn't interrupt blocking I/O on Win32") ;
+}
+else {
+	require IO::Handle ;
+	my $r = new IO::Handle() ;
+	my $w = new IO::Handle() ;
+	pipe($r, $w) ;
+	$w->autoflush(1) ;
+	print $w "\n" ;
+	my $nb = 2 ;
+	my $line = <$r> ;
+	timeout $nb => affects {
+	    $line = <$r> ;
+	} ;
+	ok($@ eq 'timeout') ;
+}
+
+
 
 

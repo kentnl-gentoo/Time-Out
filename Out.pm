@@ -5,14 +5,9 @@ package Time::Out ;
 use strict ;
 use Exporter ;
 use Carp ;
-BEGIN {
-	eval {
-		use Time::HiRes qw(alarm) ;
-	} ;
-}
 
 
-$Time::Out::VERSION = '0.03' ;
+$Time::Out::VERSION = '0.04' ;
 
 
 sub timeout($@){
@@ -24,7 +19,12 @@ sub timeout($@){
 
 	my @ret = eval {
 		local $SIG{ALRM} = sub { die $code } ;
-		alarm($secs) ;
+		if (Time::HiRes->can('alarm')){
+			Time::HiRes::alarm($secs) ;
+		}
+		else{
+			alarm($secs) ;
+		}
 		$code->(@other_args) ;
 	} ;
 	if ($@){
