@@ -4,7 +4,7 @@ use Time::Out ;
 
 
 BEGIN {
-	plan(tests => 5) ;
+	plan(tests => 7) ;
 }
 
 
@@ -38,5 +38,19 @@ sub test_args {
 	} ;
 }
 ok(test_args(5), 5) ;
+
+
+# repeats 
+timeout 1 => affects {
+	sleep(3) ;
+} ;
+sleep(3) ;
+ok(1) ;
+
+
+# 0 
+$SIG{__WARN__} = sub {ok(1)} ;
+timeout 0 => affects {
+} ;
 
 

@@ -7,8 +7,9 @@ Time::Out - Easily timeout long running operations
 
   use Time::Out ;
 
-  timeout 5 => affects {
-    # your code goes were
+  timeout $nb_secs => affects {
+    # your code goes were and will be interrupted if it runs
+    # for more than $nb_secs seconds.
   } ;
   if ($@){
     # operation timed-out
@@ -31,9 +32,9 @@ should only be used according to the syntax shown above.
   use Time::Out ;
 
   my $rc = timeout 5 => affects {
-	return 5 ;
+	return 7 ;
   } ;
-  # $rc == 5
+  # $rc == 7
 
 
 =head1 BUGS

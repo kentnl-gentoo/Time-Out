@@ -5,13 +5,19 @@ package Time::Out ;
 use strict ;
 use Exporter ;
 use Carp ;
+BEGIN {
+	eval {
+		use Time::HiRes qw(alarm) ;
+	} ;
+}
 
 
-$Time::Out::VERSION = '0.01' ;
+$Time::Out::VERSION = '0.02' ;
 
 
 sub timeout($@){
 	my $secs = shift ;
+	carp("Timeout value evaluates to 0: no timeout will be set") if ! $secs ;
 	my $code = pop ;
 	usage() unless ((defined($code))&&(UNIVERSAL::isa($code, 'CODE'))) ;
 	my @other_args = @_ ;
