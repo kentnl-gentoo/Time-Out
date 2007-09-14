@@ -5,9 +5,9 @@ Time::Out - Easily timeout long running operations
 
 =head1 SYNOPSIS
 
-  use Time::Out ;
+  use Time::Out qw(timeout) ;
 
-  timeout $nb_secs => affects {
+  timeout $nb_secs => sub {
     # your code goes were and will be interrupted if it runs
     # for more than $nb_secs seconds.
   } ;
@@ -18,33 +18,17 @@ Time::Out - Easily timeout long running operations
 
 =head1 DESCRIPTION
 
-C<Time::Out> provides an easy interface to I<alarm(2)> based timeouts.
-
-
-=head2 EXPORT
-
-C<Time::Out> exports 2 symbols, 'timeout' and 'affects'. However, these 
-should only be used according to the syntax shown above.
-
-Note: If fact, the 'affects' is really just a no-op to hide the fact that 
-the code is being placed inside another sub (I felt this fact might confuse
-folks who are Perl newbies). You could (and probably should) just as well 
-say:
-
-  use Time::Out ;
-
-  timeout $nb_secs => sub {
-	# ...
-  } ;
+C<Time::Out> provides an easy interface to I<alarm(2)> based timeouts. 
+Nested timeouts are supported.
 
 
 =head2 RETURN VALUE
 
 'timeout' returns whatever the code placed inside the block returns:
 
-  use Time::Out ;
+  use Time::Out qw(timeout) ;
 
-  my $rc = timeout 5 => affects {
+  my $rc = timeout 5 => sub {
 	return 7 ;
   } ;
   # $rc == 7
@@ -54,12 +38,12 @@ say:
 
 If C<Time::Out> sees that C<Time::HiRes> has been loaded, it will use 
 that 'alarm' function (if available) instead of the default one, allowing 
-float timeout values to be usedi effectively:
+float timeout values to be used effectively:
 
   use Time::Out ;
   use Time::HiRes ;
 
-  timeout 3.1416 => affects {
+  timeout 3.1416 => sub {
 	# ...
   } ;
 
@@ -84,7 +68,7 @@ specifically passing your @_ (or whatever you want for that matter) to
   use Time::Out ;
 
   sub test {
-    timeout 5, @_ => affects {
+    timeout 5, @_ => sub {
       print "$_[0]\n" ;
     } ;
   }
@@ -96,7 +80,7 @@ specifically passing your @_ (or whatever you want for that matter) to
 
 =head1 SEE ALSO
 
-eval, closures, I<alarm(2)>
+eval, closures, I<alarm(2)>, L<Sys::AlarmCall>
 
 
 =head1 AUTHOR

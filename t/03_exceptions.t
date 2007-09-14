@@ -1,7 +1,7 @@
 use strict ;
 use warnings ;
 use Test ;
-use Time::Out ;
+use Time::Out qw(timeout) ;
 
 
 BEGIN {
@@ -11,7 +11,7 @@ BEGIN {
 
 # exception
 eval {
-	timeout 3 => affects {
+	timeout 3 => sub {
 		die("allo\n") ;
 	} ;
 } ;
@@ -20,7 +20,7 @@ ok($@, "allo\n") ;
 
 # exception
 eval {
-	timeout 3 => affects {
+	timeout 3 => sub {
 		die("allo") ;
 	} ;
 } ;
@@ -29,7 +29,7 @@ ok($@, qr/^allo/) ;
 
 # exception
 eval {
-	timeout 3 => affects {
+	timeout 3 => sub {
 		die([56]) ;
 	} ;
 } ;

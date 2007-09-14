@@ -1,13 +1,20 @@
 package Time::Out ;
 @ISA = qw(Exporter) ;
-@EXPORT = qw(timeout affects) ;
+@EXPORT_OK = qw(timeout) ;
 
 use strict ;
 use Exporter ;
 use Carp ;
 
 
-$Time::Out::VERSION = '0.05' ;
+BEGIN {
+	if (Time::HiRes->can('alarm')){
+		Time::HiRes->import('alarm') ;
+	}
+}
+
+
+$Time::Out::VERSION = '0.10' ;
 
 
 sub timeout($@){
@@ -17,18 +24,35 @@ sub timeout($@){
 	usage() unless ((defined($code))&&(UNIVERSAL::isa($code, 'CODE'))) ;
 	my @other_args = @_ ;
 
+	my $prev_alarm = 0 ;
+	my $prev_time = 0 ;
 	my @ret = eval {
 		local $SIG{ALRM} = sub { die $code } ;
-		if (Time::HiRes->can('alarm')){
-			Time::HiRes::alarm($secs) ;
+		$prev_alarm = alarm($secs) ;
+		if (($prev_alarm)&&($prev_alarm < $secs)){
+			# A shorter alarm was pending, let's use it instead.
+			alarm($prev_alarm) ;
 		}
-		else{
-			alarm($secs) ;
-		}
+		$prev_time = time() ;
 		$code->(@other_args) ;
 	} ;
-	if ($@){
+	my $dollar_at = $@ ;
+
+	my $new_time = time() ;
+    my $new_alarm = $prev_alarm - ($new_time - $prev_time) ;
+	if ($new_alarm > 0){
+		# Rearm old alarm with remaining time.
+		alarm($new_alarm) ;
+	}
+	elsif ($prev_alarm){
+		# Old alarm has already expired.
+		kill 'ALRM', $$ ;
+	}
+	else {
 		alarm(0) ;
+	}
+
+	if ($dollar_at){
 		if ((ref($@))&&($@ eq $code)){
 			$@ = "timeout" ;
 		}
@@ -42,24 +66,13 @@ sub timeout($@){
 			}
 		}
 	}
-	else{
-		alarm(0) ;
-	}
 
 	return wantarray ? @ret : $ret[0] ;
 }
 
 
-sub affects(&){
-	my $code = shift ;
-	usage() unless ((defined($code))&&(UNIVERSAL::isa($code, 'CODE'))) ;
-
-	return $code ;
-}
-
-
 sub usage {
-	croak("Usage: timeout \$nb_secs => affects {\n  #code\n} ;\n") ;
+	croak("Usage: timeout \$nb_secs => sub {\n  #code\n} ;\n") ;
 }
 
 
