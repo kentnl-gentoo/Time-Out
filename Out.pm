@@ -11,10 +11,13 @@ BEGIN {
 	if (Time::HiRes->can('alarm')){
 		Time::HiRes->import('alarm') ;
 	}
+	if (Time::HiRes->can('time')){
+		Time::HiRes->import('time') ;
+	}
 }
 
 
-$Time::Out::VERSION = '0.10' ;
+$Time::Out::VERSION = '0.11' ;
 
 
 sub timeout($@){
@@ -24,19 +27,30 @@ sub timeout($@){
 	usage() unless ((defined($code))&&(UNIVERSAL::isa($code, 'CODE'))) ;
 	my @other_args = @_ ;
 
-	my $prev_alarm = 0 ;
-	my $prev_time = 0 ;
-	my @ret = eval {
-		local $SIG{ALRM} = sub { die $code } ;
-		$prev_alarm = alarm($secs) ;
-		if (($prev_alarm)&&($prev_alarm < $secs)){
-			# A shorter alarm was pending, let's use it instead.
-			alarm($prev_alarm) ;
-		}
-		$prev_time = time() ;
-		$code->(@other_args) ;
-	} ;
-	my $dollar_at = $@ ;
+	# Disable any pending alarms.
+	my $prev_alarm = alarm(0) ;
+	my $prev_time = time() ;
+	my $dollar_at = undef ;
+	my @ret = () ;
+	{
+		# Disable alarm to prevent possible race condition between end of eval and execution of alarm(0) after eval.
+		local $SIG{ALRM} = sub {} ; 
+		@ret = eval {
+			local $SIG{ALRM} = sub { die $code } ;
+			if (($prev_alarm)&&($prev_alarm < $secs)){
+				# A shorter alarm was pending, let's use it instead.
+				alarm($prev_alarm) ;
+			}
+			else {
+				alarm($secs) ;
+			}
+			my @ret = $code->(@other_args) ;
+			alarm(0) ;
+			@ret ;
+		} ;
+		alarm(0) ;	
+		$dollar_at = $@ ;
+	}
 
 	my $new_time = time() ;
     my $new_alarm = $prev_alarm - ($new_time - $prev_time) ;
@@ -48,21 +62,18 @@ sub timeout($@){
 		# Old alarm has already expired.
 		kill 'ALRM', $$ ;
 	}
-	else {
-		alarm(0) ;
-	}
 
 	if ($dollar_at){
-		if ((ref($@))&&($@ eq $code)){
+		if ((ref($dollar_at))&&($dollar_at eq $code)){
 			$@ = "timeout" ;
 		}
 		else {
-			if (! ref($@)){
-				chomp($@) ;
-				die("$@\n") ;
+			if (! ref($dollar_at)){
+				chomp($dollar_at) ;
+				die("$dollar_at\n") ;
 			}
 			else {
-				croak $@ ;
+				croak $dollar_at ;
 			}
 		}
 	}

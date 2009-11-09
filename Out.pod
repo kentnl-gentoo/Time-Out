@@ -90,7 +90,7 @@ Patrick LeBoutillier, E<lt>patl@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005 by Patrick LeBoutillier
+Copyright 2005-2008 by Patrick LeBoutillier
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

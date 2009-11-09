@@ -1,6 +1,10 @@
 Revision history for Perl extension Time::Out.
 
-0.06  Thu Sep 13 22:53:28 EDT 2007
+0.11  Tue Jan 15 11:36:27 EST 2008
+    - Applied patch by Jens Heunemann to fix a race condition as well as some errors
+      related to exception handling
+
+0.10  Thu Sep 13 22:53:28 EDT 2007
     - Added support for nested timeouts (thanks to chocolateboy for the patch)
     - Removed the useless 'affects' syntax
     - 'timeout' now exported via @EXPORT_OK instead of @EXPORT
